@@ -1,0 +1,109 @@
+<html>
+<head>
+<title>MIATON - Le jeu du miaton</title>
+<script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/2.0.1/socket.io.js"></script>
+	<meta charset="UTF-8">
+	<style type="text/css">
+		html, body {
+			background: #333;
+		}
+		div {
+			width: 100px;
+			height: 30px;
+			position:absolute;
+			text-align: center;
+			left:10;
+			top:10;
+			background:red;
+		}
+	</style>
+</head>
+<body>
+<div id="perso"></div>
+<script>
+    var socket = io.connect();
+	var valeurX = Math.floor(Math.random() * 100) + 10;
+	var valeurY = Math.floor(Math.random() * 100) + 10;
+	var score = 300;
+	var pseudo = prompt("Quel est votre pseudo ?");
+    socket.emit('create', pseudo)
+	console.log(pseudo)
+	var perso = document.querySelector('#perso')
+	window.onkeydown = function (e) {
+		switch(e.keyCode) {
+			case 38:
+				valeurY-=10
+				break
+			case 37:
+				valeurX-=10
+				break
+			case 40:
+				valeurY+=10
+				break
+			case 39:
+				valeurX+=10
+				break
+			case 13:
+				score+=3
+				break
+		}
+		if (score <= 0) {
+			alert('perdu')
+			location.reload(true);
+		}
+		perso.style.left = valeurX + "px"
+		perso.style.top = valeurY + "px"
+		socket.emit('alerte', JSON.parse('{"pseudo": "'+ pseudo +'", "coords": {"X": '+ valeurX +', "Y": '+ valeurY +'}, "score": '+score+'}'))
+
+	}
+
+	
+</script>
+
+<script type="text/javascript">
+
+    	socket.on('create', function(e) {
+    			console.log("create a pseudo: "+e)
+	    		var pseudoa = e
+	    		var iDiv = document.createElement('div')
+	    		iDiv.id = pseudoa
+	    		iDiv.top = 10
+	    		iDiv.left = 10
+	    		iDiv.innerHTML = pseudoa + " has 300"
+	    		document.body.appendChild(iDiv)
+	    })
+
+		var scorea
+		var pseudoa
+
+    	socket.on('alerte', function (e) {
+    			scorea = e["score"]
+    			pseudoa = e["pseudo"]
+		        var adversaire = document.querySelector('#'+pseudoa+'')
+		        adversaire.innerHTML = pseudoa + " has " + scorea
+		        adversaire.style.left = e["coords"]["X"] + "px";
+		        adversaire.style.top = e["coords"]["Y"] + "px";
+
+				if(pseudoa != pseudo) {
+					console.log("autre=" + e["coords"]["X"])
+					console.log("moi=" + perso.style.left)
+					if(perso.offsetLeft <= e["coords"]["X"] && e["coords"]["X"] <= perso.offsetLeft + 100 && perso.offsetTop <= e["coords"]["Y"] && e["coords"]["Y"] <= perso.offsetTop + 30) {
+						console.log("entered condition")
+						console.log("perso.offsetleft = " + perso.offsetLeft)
+						console.log("adv.offsetleft = " + adversaire.offsetLeft)
+						if(scorea > score) {
+							score -= 10
+						} else if (scorea == score) {
+							score -= 1
+						} else if (score > scorea) {
+							score += 10
+						} 
+						socket.emit('alerte', JSON.parse('{"pseudo": "'+ pseudo +'", "coords": {"X": '+ valeurX +', "Y": '+ valeurY +'}, "score": '+score+'}'))
+					}
+				}
+
+		});
+
+</script>
+</body>
+</html>
