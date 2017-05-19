@@ -79,6 +79,14 @@
     	socket.on('alerte', function (e) {
     			scorea = e["score"]
     			pseudoa = e["pseudo"]
+			if(!document.querySelector('#'+pseudoa+'')) {
+    				var iDiv = document.createElement('div')
+		    		iDiv.id = pseudoa
+		    		iDiv.top = 10
+		    		iDiv.left = 10
+		    		iDiv.innerHTML = pseudoa + " has 300"
+		    		document.body.appendChild(iDiv)
+    			}
 		        var adversaire = document.querySelector('#'+pseudoa+'')
 		        adversaire.innerHTML = pseudoa + " has " + scorea
 		        adversaire.style.left = e["coords"]["X"] + "px";
